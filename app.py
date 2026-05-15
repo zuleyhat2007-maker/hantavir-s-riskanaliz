@@ -1,3 +1,4 @@
+%%writefile app.py
 import streamlit as st
 import pandas as pd
 import numpy as np
@@ -13,12 +14,25 @@ st.write("Bu sistem, hastaların klinik semptomlarını ve demografik verilerini
 def train_model():
     np.random.seed(42)
     n_samples = 3000
-    symptom_cols = ['Fever', 'Myalgia', 'Headache', 'Cough', 'Dyspnea', 'Nausea',
-                    'Tachycardia', 'Hypotension', 'Pulmonary_edema', 'Thrombocytopenia',
-                    'Back_pain', 'Abdominal_pain', 'Blurred_vision', 'Petechiae',
-                    'Oliguria', 'Proteinuria', 'Hemorrhage', 'icu_admission', 'ventilator_used']
     
-   
+    symptom_cols = [
+        "Fever (Ateş)",
+        "Headache (Baş Ağrısı)",
+        "Dyspnea (Nefes Darlığı)",
+        "Tachycardia (Taşikardi / Nabız Yüksekliği)",
+        "Pulmonary Edema (Akciğer Ödemi)",
+        "Back Pain (Sırt / Bel Ağrısı)",
+        "Blurred Vision (Bulanık Görme)",
+        "Oliguria (Oligüri / İdrar Miktarında Azalma)",
+        "Hemorrhage (Kanama)",
+        "Ventilator Used (Ventilatör Kullanımı)",
+        "Myalgia (Kas Ağrısı)",
+        "Cough (Öksürük)",
+        "Nausea (Bulantı)",
+        "Hypotension (Düşük Tansiyon)",
+        "Thrombocytopenia (Trombositopeni / Trombosit Düşüklüğü)"
+    ]
+
     data = {sym: np.random.choice([0, 1], size=n_samples, p=[0.65, 0.35]) for sym in symptom_cols}
     data['Age'] = np.random.randint(15, 85, size=n_samples)
     df = pd.DataFrame(data)
@@ -75,3 +89,4 @@ if st.button("🔴 Risk Analizini Başlat", type="primary"):
         st.error(f"⚠️ **Kritik Risk Durumu Tespiti!** \nHastanın klinik tablosu yüksek hayati risk taşımaktadır. Yoğun bakım ve acil müdahale gerekebilir. \n\n**Hesaplanan Ölüm Riski Oranı: %{risk_percentage:.2f}**")
     else:
         st.success(f"✅ **Stabil Durum (Düşük Risk).** \nHastanın mevcut semptom kombinasyonları kontrol edilebilir seviyededir. Standart tedavi ve rutin klinik takip önerilir. \n\n**Hesaplanan Ölüm Riski Oranı: %{risk_percentage:.2f}**")
+       
