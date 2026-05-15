@@ -1,43 +1,29 @@
 import streamlit as st
-import streamlit as st
 import pandas as pd
 import numpy as np
 from sklearn.ensemble import RandomForestClassifier
 
-
 st.set_page_config(page_title="Hanta Virüsü Risk Analizi", layout="centered", page_icon="🦠")
 st.title("🦠 Hanta Virüsü Klinik Risk Tahmin Sistemi")
 st.write("Bu sistem, hastaların klinik semptomlarını ve demografik verilerini analiz ederek yapay zeka tabanlı bir hayati risk tahmini sunar.")
-
 
 @st.cache_resource
 def train_model():
     np.random.seed(42)
     n_samples = 3000
     
+   
     symptom_cols = [
-        "Fever (Ateş)",
-        "Headache (Baş Ağrısı)",
-        "Dyspnea (Nefes Darlığı)",
-        "Tachycardia (Taşikardi / Nabız Yüksekliği)",
-        "Pulmonary Edema (Akciğer Ödemi)",
-        "Back Pain (Sırt / Bel Ağrısı)",
-        "Blurred Vision (Bulanık Görme)",
-        "Oliguria (Oligüri / İdrar Miktarında Azalma)",
-        "Hemorrhage (Kanama)",
-        "Ventilator Used (Ventilatör Kullanımı)",
-        "Myalgia (Kas Ağrısı)",
-        "Cough (Öksürük)",
-        "Nausea (Bulantı)",
-        "Hypotension (Düşük Tansiyon)",
-        "Thrombocytopenia (Trombositopeni / Trombosit Düşüklüğü)"
+        "Fever", "Headache", "Dyspnea", "Tachycardia", "Pulmonary_edema",
+        "Back_pain", "Blurred_vision", "Oliguria", "Hemorrhage", 
+        "ventilator_used", "Myalgia", "Cough", "Nausea", "Hypotension", "Thrombocytopenia"
     ]
 
     data = {sym: np.random.choice([0, 1], size=n_samples, p=[0.65, 0.35]) for sym in symptom_cols}
     data['Age'] = np.random.randint(15, 85, size=n_samples)
     df = pd.DataFrame(data)
     
-   
+  
     risk_score = (df['Dyspnea'] * 2.5 + df['Pulmonary_edema'] * 3.0 + 
                   df['ventilator_used'] * 2.0 + (df['Age'] / 40))
     df['target'] = (risk_score > 4.5).astype(int)
@@ -49,22 +35,39 @@ def train_model():
     model.fit(X, y)
     return model, symptom_cols
 
-
 model, symptom_cols = train_model()
 
 
-st.subheader("📋 Hasta Bilgileri ve Semptomlar")
+symptom_mapping = {
+    "Fever": "Fever (Ateş)",
+    "Headache": "Headache (Baş Ağrısı)",
+    "Dyspnea": "Dyspnea (Nefes Darlığı)",
+    "Tachycardia": "Tachycardia (Taşikardi / Nabız Yüksekliği)",
+    "Pulmonary_edema": "Pulmonary Edema (Akciğer Ödemi)",
+    "Back_pain": "Back Pain (Sırt / Bel Ağrısı)",
+    "Blurred_vision": "Blurred Vision (Bulanık Görme)",
+    "Oliguria": "Oliguria (Oligüri / İdrar Miktarında Azalma)",
+    "Hemorrhage": "Hemorrhage (Kanama)",
+    "ventilator_used": "Ventilator Used (Ventilatör Kullanımı)",
+    "Myalgia": "Myalgia (Kas Ağrısı)",
+    "Cough": "Cough (Öksürük)",
+    "Nausea": "Nausea (Bulantı)",
+    "Hypotension": "Hypotension (Düşük Tansiyon)",
+    "Thrombocytopenia": "Thrombocytopenia (Trombositopeni / Trombosit Düşüklüğü)"
+}
 
+st.subheader("📋 Hasta Bilgileri ve Semptomlar")
 
 age = st.slider("Hastanın Yaşı", 15, 85, 40)
 
 st.write("Aşağıdaki klinik belirtilerden hastada mevcut olanları işaretleyiniz:")
 user_inputs = {}
 
-
 col1, col2 = st.columns(2)
 for i, sym in enumerate(symptom_cols):
-    label = sym.replace("_", " ").title() 
+  
+    label = symptom_mapping.get(sym, sym.replace("_", " ").title())
+    
     if i % 2 == 0:
         with col1:
             user_inputs[sym] = 1 if st.checkbox(label, key=sym) else 0
@@ -72,12 +75,9 @@ for i, sym in enumerate(symptom_cols):
         with col2:
             user_inputs[sym] = 1 if st.checkbox(label, key=sym) else 0
 
-
 if st.button("🔴 Risk Analizini Başlat", type="primary"):
-   
     input_data = [user_inputs[sym] for sym in symptom_cols] + [age]
     
-  
     prediction = model.predict([input_data])[0]
     probabilities = model.predict_proba([input_data])[0]
     risk_percentage = probabilities[1] * 100
@@ -89,4 +89,3 @@ if st.button("🔴 Risk Analizini Başlat", type="primary"):
         st.error(f"⚠️ **Kritik Risk Durumu Tespiti!** \nHastanın klinik tablosu yüksek hayati risk taşımaktadır. Yoğun bakım ve acil müdahale gerekebilir. \n\n**Hesaplanan Ölüm Riski Oranı: %{risk_percentage:.2f}**")
     else:
         st.success(f"✅ **Stabil Durum (Düşük Risk).** \nHastanın mevcut semptom kombinasyonları kontrol edilebilir seviyededir. Standart tedavi ve rutin klinik takip önerilir. \n\n**Hesaplanan Ölüm Riski Oranı: %{risk_percentage:.2f}**")
-       
